@@ -6,7 +6,7 @@ import time as time_p
 
 import requests
 from bs4 import BeautifulSoup
-import xml.etree.ElementTree as ET
+import json
 
 import utils
 
@@ -26,12 +26,23 @@ class WaniKani:
     def __init__(self):
         self.key = utils.load_api_config('secrets.yaml')['wanikani']
 
-    def scrape_wanikani(self, resource):
-        url = "https://www.wanikani.com/api/user/{USER_API_KEY}/{RESOURCE}/".format(USER_API_KEY=self.key, RESOURCE=resource)
-        return scrapeSite(url)
+        self.vocab = self.load_vocab()
+
+    def scrape(self, resource, level=None):
+        if level is None:
+            url = "https://www.wanikani.com/api/user/{USER_API_KEY}/{RESOURCE}/".format(USER_API_KEY=self.key, RESOURCE=resource)
+        else:
+            url = "https://www.wanikani.com/api/user/{USER_API_KEY}/{RESOURCE}/{LEVEL}".format(USER_API_KEY=self.key,
+                                                                                        RESOURCE=resource, LEVEL=level)
+        return scrape_site(url)
+
+    def load_vocab(self):
+        vocab = wanikani.scrape(wanikani.vocabulary)
+        vocab = json.loads(vocab)
+        return vocab
 
 
-def scrapeSite(_url, use_progress_bar=False, retry=10):
+def scrape_site(_url, use_progress_bar=False, retry=10):
     """
     Safely retrieves and returns a website using passed URL.
     If error occurs during retrieval, None will be returned instead
@@ -51,7 +62,7 @@ def scrapeSite(_url, use_progress_bar=False, retry=10):
         if retry > 0:
             logging.warning("Retry #{}".format(11 - retry))
             time_p.sleep(0.25 * (11 - retry))
-            retry_scrape = scrapeSite(_url, retry=(retry - 1))
+            retry_scrape = scrape_site(_url, retry=(retry - 1))
             try:
                 data = retry_scrape.text
             except:
@@ -67,7 +78,7 @@ def scrapeSite(_url, use_progress_bar=False, retry=10):
         if retry > 0:
             logging.warning("Retry #{}".format(11 - retry))
             time_p.sleep(0.33 * (11 - retry))
-            retry_scrape = scrapeSite(_url, retry=(retry - 1))
+            retry_scrape = scrape_site(_url, retry=(retry - 1))
             try:
                 data = retry_scrape.text
             except:
@@ -87,5 +98,10 @@ def scrapeSite(_url, use_progress_bar=False, retry=10):
 
 if __name__ == '__main__':
     wanikani = WaniKani()
+
+
+
+
+    print("done")
 
 
