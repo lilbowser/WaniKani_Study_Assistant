@@ -123,7 +123,7 @@ class QuestionPool:
 
     def inc_index(self):
 
-        if self.index < len(self.wani.combined) - 1:
+        if self.index < len(self.current_pool) - 1:
             self.index += 1
         else:
             self.index = 0
@@ -131,15 +131,15 @@ class QuestionPool:
     def dec_index(self):
 
         if self.index == 0:
-            self.index = len(self.wani.combined) - 1
+            self.index = len(self.current_pool) - 1
         else:
             self.index -= 1
 
     def next(self):
 
-        if self.index == len(self.wani.combined)-1:
+        if self.index == len(self.current_pool)-1:
             # At end of data
-            return "End"
+            return "end"
         else:
             self.inc_index()
             return self.current_pool[self.index]
@@ -147,7 +147,7 @@ class QuestionPool:
     def previous(self):
         if self.index == 0:
             # At start of data
-            return "Start"
+            return "start"
         else:
             self.dec_index()
             return self.current_pool[self.index]

@@ -81,8 +81,6 @@ class Data:
         return self.data[self.index]
 
 
-
-
 @app.route('/hello')
 def hello_world():
     #  こんにちわ
@@ -239,6 +237,31 @@ def post():
 
                        """.format(status)
     return html
+
+
+@app.route("/next")
+def next():
+    item = pool.next()
+    if item == "end":
+        pool.index = 0
+        return "End Of Pool. Resetting to beginning"
+
+    return jsonify(results=pool.current().serialize())
+
+
+@app.route("/cur")
+def cur():
+    return jsonify(results=pool.current().serialize())
+
+
+@app.route("/prev")
+def prev():
+    index = pool.previous()
+    if index == "start":
+        pool.index = 0
+        return "Beginning of Pool. Can go no further back"
+
+    return jsonify(results=pool.current().serialize())
 
 
 @app.route("/json")
