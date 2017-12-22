@@ -62,6 +62,8 @@ Notes
 
 from datetime import datetime
 from json import loads
+from copy import deepcopy
+
 try:
     # pylint: disable=no-name-in-module
     from urllib import urlopen
@@ -134,6 +136,7 @@ class WaniKani(object):
         """Retrieves the information in the vocabulary API endpoint."""
         return self._get_items(levels, 'vocabulary', VOCABULARY)
     vocabulary = property(get_vocabulary)
+
 
     def _get(self, resource, key, fields):
         """Gets an WaniKaniObject representing some object returned by the
@@ -214,6 +217,14 @@ class WaniKaniObject(object):
 
     def __repr__(self):
         return str(self.__dict__)
+
+    def serialize(self):
+        tmp = deepcopy(self.__dict__)
+        for key, item in self.__dict__.items():
+            if type(item) == WaniKaniObject:
+                tmp[key] = item.serialize()
+        return tmp
+
 
 USER_INFO = [('username', lambda x: x),
              ('gravatar', lambda x: x),

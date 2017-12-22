@@ -175,6 +175,7 @@ class QuestionPool:
     def randomize_pool(self):
         random().shuffle(self.current_pool)
 
+
 if __name__ == '__main__':
     wani = WaniKaniData()
     #data = wani.seperate()
@@ -183,6 +184,14 @@ if __name__ == '__main__':
     pool = QuestionPool(wani)
 
     pool.populate_pool(['kanji', 'vocabulary'])
+
+    tmp = []
+
+    a = pool.current_pool[0]
+
+    b = [obj.serialize() for obj in pool.current_pool]
+
+
     # a = []
     #
     # for item in wani.combined:

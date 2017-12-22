@@ -5,8 +5,8 @@
 
 import logging
 import re
-from flask import Flask, render_template, json, request, redirect, url_for
-from WaniKani_quiz import QuestionPool
+from flask import Flask, render_template, jsonify, json, request, redirect, url_for
+from WaniKani_quiz import QuestionPool, WaniKaniData
 
 
 app = Flask(__name__)
@@ -241,8 +241,16 @@ def post():
     return html
 
 
+@app.route("/json")
+def json():
+    return jsonify(result=[obj.serialize() for obj in pool.current_pool])
+
 if __name__ == '__main__':
 
     data = Data("BaseInfo2")
-    app.run(host="0.0.0.0", port=5000)
+    wani = WaniKaniData()
+    pool = QuestionPool(wani)
+    pool.populate_pool(['kanji', 'vocabulary'])
+    pool.randomize_pool()
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
