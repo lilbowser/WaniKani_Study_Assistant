@@ -1,3 +1,10 @@
+"""
+
+https://community.wanikani.com/t/dashboard-userscript-leech-apprentice-and-guru-detail-aka-srs-level-progress/19353/157
+
+'leech-ness': score = NumberWrong/CorrectStreak^1.5
+"""
+
 import logging
 from random import SystemRandom as random
 
@@ -20,14 +27,24 @@ class WaniKaniData:
     # vocabulary = "vocabulary"
 
     def __init__(self):
-        self.key = utils.load_api_config('secrets.yaml')['wanikani']
+        self.key = utils.load_api_config('secrets.yaml')['wanikani']  # TODO: This should not be hard coded like this.
         self.wk = WaniKani(self.key)
+
+        self.score_tolerance = 1
+
         self.combined = []
         self.kanji = []
         self.radicals = []
         self.vocabulary = []
 
-        self.data_set_names = ["kanji", "radicals", "vocabulary", "critical_items"]
+        self.data_set_ids = [
+            {"name": "kanji"},
+            {"name": "radicals"},
+            {"name": "vocabulary"},
+            {"name": "critical_items",
+             "argument": 90  # Gets crit items < 90
+             }
+        ]
         self.load_data_set()  # load all relevant items from wanikani and label them
 
 
@@ -35,28 +52,59 @@ class WaniKaniData:
         for _item in getattr(self, name):
                 _item.API_type = name
 
-    def load_item(self, name, api_name=None):
+    def assign_scores(self, data_id):
+        for item in getattr(self, data_id['name']):
+            item.needs_help = False
+            if item.type == 'radicals':
+                continue
+
+            if item.user_specific is None:
+                # Ensures the item has been shown to user
+                continue
+
+            if item.user_specific.meaning_incorrect is None or item.user_specific.meaning_current_streak is None or \
+                            item.user_specific.reading_incorrect is None or item.user_specific.meaning_current_streak is None:
+                # if any of these are None, than the item is very new and has not been learned at all.
+                item.needs_help = True
+                continue
+
+            item.meaning_score = (item.user_specific.meaning_incorrect + 3) / ((item.user_specific.meaning_current_streak + 1) ** 1.5)
+            item.reading_score = (item.user_specific.reading_incorrect + 3) / ((item.user_specific.meaning_current_streak + 1) ** 1.5)
+
+            if 0 <= item.meaning_score < self.score_tolerance and 0 <= item.reading_score < self.score_tolerance:
+                # This indicates not leach
+                continue
+            item.needs_help = True
+
+    def load_item(self, data_id, api_name=None):
+        """
+        Retrives data from WaniKani endpoint specified by a data_id
+        :param data_id: A data_id from self.data_set_ids
+        :type data_id: dict
+        :param api_name:
+        :type api_name:
+        :return:
+        :rtype:
+        """
         if api_name is None:
-            api_name = name
-        setattr(self, name, getattr(self.wk, api_name))
-        self.label_items(name)
+            api_name = data_id['name']
+        setattr(self, data_id['name'], getattr(self.wk, api_name))
+        self.label_items(data_id['name'])
+        self.assign_scores(data_id)
+
 
     def load_data_set(self):
-        for item_name in self.data_set_names:
-            self.load_item(item_name)
-            self.combined += getattr(self, item_name)
+        for data_id in self.data_set_ids:
+            self.load_item(data_id)
+            self.combined += getattr(self, data_id['name'])
 
     def randomise_data_set(self):
         random().shuffle(self.combined)
-        for _item in self.data_set_names:
-            random().shuffle(getattr(self, _item))
+        for data_id in self.data_set_ids:
+            random().shuffle(getattr(self, data_id['name']))
 
 
 class WaniKaniDataError(Exception):
-    """Errors returned by the WaniKani API itself.
-
-    Contains all of the information in the "error" field returned by the API.
-    """
 
     def __init__(self, msg):
         super(WaniKaniDataError, self).__init__('{m}'.format(m=msg))
@@ -70,6 +118,7 @@ class QuestionPool:
         self.wani = data_set
         """:type : WaniKaniData"""
         self.current_pool = []
+        self.tolerance = 1
 
 
     def inc_index(self):
@@ -106,14 +155,21 @@ class QuestionPool:
     def current(self):
         return self.current_pool[self.index]
 
-    def populate_pool(self, desired_types):
+    def populate_pool(self, desired_types, only_needs_help=True):
+        """
+        Adds items to the pool whose API type matches the given 'desired_types'.
+        :param desired_types: Can be either a single string or a list of strings.
+        :type desired_types: str | list[str]
+        """
+        self.current_pool.clear()  # Empty the pool first
         if type(desired_types) == str:
             desired_types = [desired_types]
 
         for desired_type in desired_types:
             for _item in self.wani.combined:
-                if _item.API_type == desired_type:
-                    self.current_pool.append(_item)
+                if _item.API_type == desired_type and _item.user_specific is not None:
+                    if only_needs_help == True and _item.needs_help == True:
+                        self.current_pool.append(_item)
         self.index = 0  # reset index when changing pool
 
     def randomize_pool(self):
@@ -125,10 +181,14 @@ if __name__ == '__main__':
     wani.randomise_data_set()
 
     pool = QuestionPool(wani)
-    a = []
 
-    for item in wani.combined:
-        if item.API_type == "critical_items":
-            a.append(item)
+    pool.populate_pool(['kanji', 'vocabulary'])
+    # a = []
+    #
+    # for item in wani.combined:
+    #     if item.API_type == "critical_items":
+    #         a.append(item)
+
+
     print('Done')
 

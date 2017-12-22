@@ -6,6 +6,7 @@
 import logging
 import re
 from flask import Flask, render_template, json, request, redirect, url_for
+from WaniKani_quiz import QuestionPool
 
 
 app = Flask(__name__)
