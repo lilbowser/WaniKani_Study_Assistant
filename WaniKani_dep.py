@@ -5,13 +5,12 @@ import traceback
 import time as time_p
 
 import requests
-from bs4 import BeautifulSoup
-import json
 
+import json
 import utils
 
 
-class WaniKani:
+class WaniKaniData:
 
     user_info = "user_information"
     study_queue = "study-queue"
@@ -28,6 +27,10 @@ class WaniKani:
 
         self.vocab = self.load_vocab()
 
+    @property
+    def woo(self):
+        return self.vocab
+
     def scrape(self, resource, level=None):
         if level is None:
             url = "https://www.wanikani.com/api/user/{USER_API_KEY}/{RESOURCE}/".format(USER_API_KEY=self.key, RESOURCE=resource)
@@ -37,7 +40,7 @@ class WaniKani:
         return scrape_site(url)
 
     def load_vocab(self):
-        vocab = wanikani.scrape(wanikani.vocabulary)
+        vocab = self.scrape(self.vocabulary)
         vocab = json.loads(vocab)
         return vocab
 
@@ -97,7 +100,6 @@ def scrape_site(_url, use_progress_bar=False, retry=10):
 
 
 if __name__ == '__main__':
-    wanikani = WaniKani()
 
 
 

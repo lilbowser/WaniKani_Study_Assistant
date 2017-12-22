@@ -40,7 +40,5 @@ if __name__ == '__main__':
         else:
             print("Wrong: Correct answer: {}".format(data_store[cur_num][0]))
 
-
-
 input("Press Key To Exit")
 

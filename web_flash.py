@@ -45,14 +45,12 @@ class Data:
 
             self.data = data_store
 
-
     def inc_index(self):
 
         if self.index < len(self.data):
             self.index += 1
         else:
             self.index = 0
-
 
     def dec_index(self):
 
@@ -70,7 +68,6 @@ class Data:
             self.inc_index()
             return self.index
 
-
     def previous(self):
         if self.index == 0:
             # At start of data
@@ -78,7 +75,6 @@ class Data:
         else:
             self.dec_index()
             return self.index
-
 
     def current_item(self):
         return self.data[self.index]
