@@ -5,7 +5,6 @@ import traceback
 import time as time_p
 
 import requests
-from bs4 import BeautifulSoup
 import json
 
 import utils
@@ -37,7 +36,7 @@ class WaniKani:
         return scrape_site(url)
 
     def load_vocab(self):
-        vocab = wanikani.scrape(wanikani.vocabulary)
+        vocab = self.scrape(self.vocabulary)
         vocab = json.loads(vocab)
         return vocab
 

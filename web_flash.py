@@ -3,9 +3,17 @@
 
 """
 
+
 import logging
 import re
+
+import utils
+
+
 from flask import Flask, render_template, json, request, redirect, url_for
+
+from crabigator.wanikani import WaniKani
+
 
 
 app = Flask(__name__)
@@ -16,15 +24,38 @@ data = None
 
 class Data:
 
-    def __init__(self, file_name):
+    def __init__(self, file_name=None):
+        key = utils.load_api_config('/secrets.yaml')['wanikani']
+        self.wani = WaniKani(key)
         self.data = []
         self.file_name = file_name
         self.index = 0
+        self.mode = 'vocab'
+        self.generate_list_from_wanikani()
 
-        self.generate_list()
+
+    def generate_list_from_wanikani(self):
+        data_store = []
+
+        vocab_study_list = []
+        kanji_study_list = []
+        for vocab in self.wani.vocabulary:
+            if vocab.user_specific is not None:
+                if vocab.user_specific.srs_numeric < 4:
+                    vocab_study_list.append(vocab)
+
+        for kanji in self.wani.kanji:
+            if kanji.user_specific is not None:
+                if kanji.user_specific.srs_numeric < 4:
+                    kanji_study_list.append(kanji)
+
+        if self.mode == 'vocab':
+            self.data = vocab_study_list
+        elif self.mode == 'kanji':
+            self.data = kanji_study_list
 
 
-    def generate_list(self):
+    def generate_list_from_file(self):
         data_store = []
 
         with open(self.file_name + ".txt", encoding="utf-16") as data:  # , errors='replace'
@@ -45,10 +76,21 @@ class Data:
 
             self.data = data_store
 
+    def current_quest(self):
+        if self.mode == 'vocab':
+            return self.data[self.index].character
+        elif self.mode == "kanji":
+            raise NotImplementedError
+
+    def current_kana_answer(self):
+        if self.mode == 'vocab':
+            return self.data[self.index].kana
+        elif self.mode == "kanji":
+            raise NotImplementedError
 
     def inc_index(self):
 
-        if self.index < len(self.data):
+        if self.index < len(self.data)-1:
             self.index += 1
         else:
             self.index = 0
@@ -82,8 +124,6 @@ class Data:
 
     def current_item(self):
         return self.data[self.index]
-
-
 
 
 @app.route('/hello')
@@ -155,9 +195,20 @@ def test():
     # return "こんにちわ"
 
 
-@app.route("/post2", methods=['GET', 'POST'])
-def post2():
-    func_name = "post2"
+@app.route("/refresh")
+def refresh():
+    data.wani.get_vocabulary()
+    data.wani.get_level_progression()
+    data.wani.get_kanji()
+    data.wani.get_critical_items()
+    data.wani.get_srs_distribution()
+    data.generate_list_from_wanikani()
+    return "Data Refreshed"
+
+
+@app.route("/vocab", methods=['GET', 'POST'])
+def vocab():
+    func_name = "vocab"
     status = "Error!!!"
     correct = False
 
@@ -172,38 +223,39 @@ def post2():
                 data.dec_index()
             return redirect(url_for(func_name))
 
-        elif 'answer' in request.form and len(request.form['answer']) > 0:
+        elif 'answer' in request.form:# and len(request.form['answer']) > 0:
             # an answer was submitted. Handle it and send user to next screen.
-            if request.form['answer'] == data.current_item()[0]:
+            if request.form['answer'] == data.current_kana_answer()[0]:  #TODO: Fix this to iterate over all posible answers
                 status = "Correct!"
                 correct = True
                 data.inc_index()
                 return redirect(url_for(func_name))
             else:
-                status = """Wrong!
-                Correct answer: {}""".format(data.current_item()[0])
+                status = """Incorrect<br>
+                Correct answer: {}<br> Your answer: {}""".format(data.current_kana_answer()[0], request.form['answer'])
 
                 html = """
                        <body>
                        <center>
-                           <h1>{}</h1>
-                           <form action="/post2" target="_self" autocomplete="off" method="POST">
+                           <h1>{status}</h1>
+                           <form action="/{loc}" target="_self" autocomplete="off" method="POST">
                                <button name="act" type="submit" value="previous">Previous</button> 
                                <button name="act" type="submit" value="next" autofocus>Next</button> 
                            </form>
                        </center>
                        </body>
 
-                       """.format(status)
+                       """.format(status=status, loc=func_name)
                 return html
+
 
     elif request.method == 'GET':
 
         html = """
            <body>
            <center>
-               <h1>{}</h1>
-               <form action="/post2" target="_self" autocomplete="off" method="POST">
+               <h1>{status}</h1>
+               <form action="/{loc}" target="_self" autocomplete="off" method="POST">
                    <input type="text" name="answer" autofocus>
                    <br>
                    <input type="submit" value="Submit">
@@ -214,7 +266,7 @@ def post2():
            </center>
            </body>
 
-           """.format(data.current_item()[1])
+           """.format(status=data.current_quest(), loc=func_name)
         return html
 
 
@@ -247,5 +299,5 @@ def post():
 if __name__ == '__main__':
 
     data = Data("BaseInfo2")
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
