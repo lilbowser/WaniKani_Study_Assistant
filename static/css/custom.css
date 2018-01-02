@@ -1,0 +1,21 @@
+.centerBlock {
+  /*display: table;*/
+  /*margin: auto;*/
+  text-align: center;
+}
+
+.bg-pink {
+  background-color: #e83e8c !important;
+}
+
+.bg-vocabulary {
+  background-color: #9e00ed !important;
+}
+
+.bg-radicals {
+  background-color: #00aaff !important;
+}
+
+.bg-kanji {
+  background-color: #ff00aa !important;
+}
