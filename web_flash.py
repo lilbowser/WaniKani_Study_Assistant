@@ -112,7 +112,32 @@ def hello_world():
 
 @app.route('/')
 def main_route():
-    return hello_world()
+    return render_template('index.html')
+
+
+@app.route('/boot')
+def boot():
+    return render_template('indexboot.html')
+
+
+@app.route('/form')
+def form():
+    return render_template('form.html')
+
+
+@app.route('/submit',  methods=['GET', 'POST'])
+def submit():
+
+    if request.method == 'POST':
+
+        if 'message' in request.form:
+            message = request.form['message']
+            return jsonify(type="Success", message="Data Received: " + message)  #
+        elif 'answer' in request.form:
+            message = request.form['answer']
+            return jsonify(type="Success", message=message)
+
+    return jsonify(type="Failure")
 
 
 @app.route('/test')
@@ -252,6 +277,23 @@ def next():
 @app.route("/cur")
 def cur():
     return jsonify(results=pool.current().serialize())
+
+
+
+@app.route("/get_item", methods=['GET', 'POST'])
+def get_item():
+    if request.method == 'POST':
+        if 'index' in request.form:
+            current_index = request.form['index']
+            return jsonify(results=pool.current_pool[int(current_index)].serialize())
+
+    else:
+        return jsonify(error=True)
+
+
+@app.route("/get_pool_details", methods=['GET', 'POST'])
+def get_pool_details():
+    return jsonify(pool_length=len(pool.current_pool))
 
 
 @app.route("/prev")
