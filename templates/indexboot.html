@@ -46,26 +46,36 @@
 </nav>
 
 <div class="progress">
-    <div class="progress-bar bg-pink" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0"
+    <div class="progress-bar bg-pink" role="progressbar" style="width: 0%;" aria-valuenow="25" aria-valuemin="0"
          aria-valuemax="100"></div>
 </div>
+
+<div id="message-display"></div>
 
 <div class="container">
     <form id="answer-form" method="get" action="/form2" role="form">
         <div class="row">
             <div class="col-md-10 offset-md-1 col-lg-10 offset-lg-1">
-                <div class="card text-white bg-vocabulary-grad question-message">
+                <div id="question-card" class="card text-white">
                     <div class="card-body text-center question-display">
-                        <h1></h1>
+                        <h1 class="card-text"></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-10 offset-md-1 col-lg-10 offset-lg-1">
+                <div class="card text-white bg-question-type-gradient">
+                    <div class="card-body text-center crd-question-type question-type-display">
+                        <h6 class="card-text txt-question-type"></h6>
+                        <p class="txt-question-type font-weight-bold"></p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="input-group col-md-6 offset-md-3 col-lg-6 offset-lg-3">
-                <input type="text" id="answer" name="answer" class="form-control" placeholder="Your Response">
+            <div class="input-group col-md-8 offset-md-2 col-lg-8 offset-lg-2">
+                <input type="text" id="answer" name="answer" class="form-control" autocomplete="off" placeholder="Your Response">
                 <div class="input-group-append">
-                    <button class="btn btn-outline-pink" type="submit">Submit</button>
+                    <button class="btn btn-outline-info" type="submit"><i class="fas fa-angle-right"></i></button>
                 </div>
             </div>
         </div>
@@ -73,8 +83,12 @@
         <div class="row">
             <br>
             <div class="col-md-6 offset-md-3 centerBlock">
-                <button class="btn btn-primary" name="act" type="submit" value="previous">Previous</button>
-                <button class="btn btn-primary" name="act" type="submit" value="Next">Next</button>
+                <button class="btn btn-primary" onclick="previous_item()" name="action" type="button" value="previous">
+                    Previous
+                </button>
+                <button class="btn btn-primary" onclick="show_answer()" name="action" type="button" value="show_answer">Show Answer</button>
+                <button class="btn btn-primary" onclick="next_item()" name="action" type="button" value="skip">Skip
+                </button>
             </div>
         </div>
     </form>
@@ -82,21 +96,18 @@
 </div>
 
 
-<!--<div class="row">-->
-<!--<div class="col s12 m6 l3 center-align"><p>s12 m6 l3</p></div>-->
-<!--<div class="col s12 m6 l3 center-align"><p>s12 m6 l3</p></div>-->
-<!--<div class="col s12 m6 l3 center-align"><p>s12 m6 l3</p></div>-->
-<!--<div class="col s12 m6 l3 center-align"><p>s12 m6 l3</p></div>-->
-<!--</div>-->
-
+<script defer src="https://use.fontawesome.com/releases/v5.0.2/js/all.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"></script>
+
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js"
         integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4"
         crossorigin="anonymous"></script>
+
 <script src="static/js/script.js"></script>
 </body>
 </html>

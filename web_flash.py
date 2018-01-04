@@ -279,13 +279,14 @@ def cur():
     return jsonify(results=pool.current().serialize())
 
 
-
 @app.route("/get_item", methods=['GET', 'POST'])
 def get_item():
     if request.method == 'POST':
         if 'index' in request.form:
             current_index = request.form['index']
-            return jsonify(results=pool.current_pool[int(current_index)].serialize())
+            item = pool.current_pool[int(current_index)].serialize()
+            print("Index: {}, Item: {}".format(current_index, item))
+            return jsonify(results=item)
 
     else:
         return jsonify(error=True)
