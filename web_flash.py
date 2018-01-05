@@ -81,6 +81,19 @@ class Data:
         return self.data[self.index]
 
 
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
+
+
 @app.route('/hello')
 def hello_world():
     #  こんにちわ
@@ -113,6 +126,11 @@ def hello_world():
 @app.route('/')
 def main_route():
     return render_template('index.html')
+
+
+@app.route('/demo')
+def demo_route():
+    return render_template('basic/index.html')
 
 
 @app.route('/boot')
@@ -313,10 +331,10 @@ def json():
 
 if __name__ == '__main__':
 
-    data = Data("BaseInfo2")
+    # data = Data("BaseInfo2")
     wani = WaniKaniData()
     pool = QuestionPool(wani)
     pool.populate_pool(['kanji', 'vocabulary'])
     pool.randomize_pool()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
 

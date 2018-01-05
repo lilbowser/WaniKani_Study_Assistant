@@ -1,6 +1,8 @@
 var current_data_item;
 var current_index;
 var pool_size;
+var $htmlOrBody = $('html, body'), // scrollTop works on <body> for some browsers, <html> for others
+    scrollTopPadding = 175;
 
 $(function () {
 
@@ -66,11 +68,32 @@ $(function () {
 
 $(document).ready(function () {
     current_index = 0;
+    //
+    // var textareaTop = $('#answer').offset().top;
+    // // scroll to the textarea
+    // $htmlOrBody.scrollTop(textareaTop - scrollTopPadding);
+
     get_pool_size();
     load_item(current_index);
 
 
     console.log("ready!");
+});
+
+window.addEventListener("load",function() {
+    setTimeout(function(){
+        // This hides the address bar:
+        window.scrollTo(0, 1);
+    }, 0);
+});
+
+$('#answer').focus(function() {
+    // // get textarea's offset top position
+    // var textareaTop = $(this).offset().top;
+    // // scroll to the textarea
+    // $htmlOrBody.scrollTop(textareaTop - scrollTopPadding);
+    // var timing = 2;
+    // $htmlOrBody.animate({ scrollTop: textareaTop - scrollTopPadding }, timing);
 });
 
 
