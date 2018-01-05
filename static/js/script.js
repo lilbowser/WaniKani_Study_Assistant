@@ -27,9 +27,10 @@ $(function () {
             if (correct) {
                 next_item()
             } else {
-                var messageText = "You entered: " + answer + ", Correct answer is " + correct_answer[0] + "";
+                var messageText1 = "You entered: " + answer;
+                var messageText2 = "Correct answer is " + correct_answer[0] + "";
                 //class="close" data-dismiss="alert" &times;
-                var alertBox = '<div class="alert ' + 'text-center alert-danger alert-dismissable"><button id="wrong-next" type="button" onclick="next_item()" class="close" aria-hidden="true"><i class="fas fa-angle-right"></i></button> <h4>' + messageText + '</h4></div>';
+                var alertBox = '<div class="alert ' + 'text-center alert-danger alert-dismissable"><button id="wrong-next" type="button" onclick="next_item()" class="close" aria-hidden="true"> > </button> <h4>' + messageText1 + '</h4><h4>' + messageText2 + '</h4></div>';
                 $('#message-display').html(alertBox);
                 $('#wrong-next').focus();
 
