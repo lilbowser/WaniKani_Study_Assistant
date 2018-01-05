@@ -90,8 +90,8 @@ class WaniKaniData:
             api_name = data_id['name']
         setattr(self, data_id['name'], getattr(self.wk, api_name))
         self.label_items(data_id['name'])
+        self.add_url(data_id)
         self.assign_scores(data_id)
-
 
     def load_data_set(self):
         for data_id in self.data_set_ids:
@@ -102,6 +102,11 @@ class WaniKaniData:
         random().shuffle(self.combined)
         for data_id in self.data_set_ids:
             random().shuffle(getattr(self, data_id['name']))
+
+    def add_url(self, data_id):
+        for item in getattr(self, data_id['name']):
+            url = "https://www.wanikani.com/{type}/{slug_name}".format(type=item.type, slug_name=item.character)
+            item.url = url
 
 
 class WaniKaniDataError(Exception):

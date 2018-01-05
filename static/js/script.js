@@ -126,6 +126,9 @@ function show_answer() {
     $('#answer-dismiss').focus();
 }
 
+function show_info() {
+    window.open(current_data_item.url)
+}
 
 function get_pool_size() {
     var jqxhr = $.post("/get_pool_details", function (data) {
