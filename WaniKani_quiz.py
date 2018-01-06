@@ -9,9 +9,11 @@ import logging
 from random import SystemRandom as random
 
 # from crabigator.wanikani import WaniKani
-from wanikani_lib import WaniKani
+from wanikani_lib import WaniKani, WaniKaniObject
 import utils
+import pickle
 
+from json import load, dump
 
 class WaniKaniData:
     """Wrapper for crabigator WaniKani library"""
@@ -31,6 +33,7 @@ class WaniKaniData:
         self.wk = WaniKani(self.key)
 
         self.score_tolerance = 1
+        self.data_archive_name = "WaniKaniData"
 
         self.combined = []
         self.kanji = []
@@ -46,7 +49,6 @@ class WaniKaniData:
              }
         ]
         self.load_data_set()  # load all relevant items from wanikani and label them
-
 
     def label_items(self, name):
         for _item in getattr(self, name):
@@ -92,7 +94,6 @@ class WaniKaniData:
         self.label_items(data_id['name'])
         self.assign_scores(data_id)
 
-
     def load_data_set(self):
         for data_id in self.data_set_ids:
             self.load_item(data_id)
@@ -102,6 +103,25 @@ class WaniKaniData:
         random().shuffle(self.combined)
         for data_id in self.data_set_ids:
             random().shuffle(getattr(self, data_id['name']))
+
+    def save_data_set_to_disk(self, name):
+
+        with open(self.data_archive_name + '_' + name +'.json', mode='w') as archive:
+            data_set = getattr(self, name)
+            _data = [obj.dump() for obj in data_set]
+            dump(_data, archive, indent=4)
+
+    def load_data_set_from_disk(self, name):
+        with open(self.data_archive_name + '_' + name + '.json', mode='r') as archive:
+            dict_data_set = load(archive)
+            data_set = [WaniKaniObject(load_from_dict=_data) for _data in dict_data_set]
+            return data_set
+
+    def save_to_disk(self):
+        for data_id in self.data_set_ids:
+            self.save_data_set_to_disk(data_id['name'])
+
+
 
 
 class WaniKaniDataError(Exception):
@@ -145,6 +165,7 @@ class QuestionPool:
             return self.current_pool[self.index]
 
     def previous(self):
+
         if self.index == 0:
             # At start of data
             return "start"
@@ -188,9 +209,28 @@ if __name__ == '__main__':
     tmp = []
 
     a = pool.current_pool[0]
+    a.testing = "Wppp"
 
-    b = [obj.serialize() for obj in pool.current_pool]
+    # b = [obj.dump() for obj in pool.current_pool]
 
+    # data = wani.vocabulary
+    # pickeled_data = pickle.dumps(data)
+    # unpickled_data = pickle.loads(pickeled_data)
+
+
+    wani.save_to_disk()
+    # wani.save_data_set_to_disk('vocabulary')
+    # data = wani.load_data_set_from_disk('vocabulary')
+    # serialized = []
+    #
+    # for item in pool.current_pool:
+    #     serialized.append(item.dump())
+    #
+    #
+    # deserialized = []
+    #
+    # for item in serialized:
+    #     deserialized.append(WaniKaniObject().load(item))
 
     # a = []
     #

@@ -246,12 +246,12 @@ def next():
         pool.index = 0
         return "End Of Pool. Resetting to beginning"
 
-    return jsonify(results=pool.current().serialize())
+    return jsonify(results=pool.current().dump())
 
 
 @app.route("/cur")
 def cur():
-    return jsonify(results=pool.current().serialize())
+    return jsonify(results=pool.current().dump())
 
 
 @app.route("/prev")
@@ -261,16 +261,16 @@ def prev():
         pool.index = 0
         return "Beginning of Pool. Can go no further back"
 
-    return jsonify(results=pool.current().serialize())
+    return jsonify(results=pool.current().dump())
 
 
 @app.route("/json")
 def json():
-    return jsonify(result=[obj.serialize() for obj in pool.current_pool])
+    return jsonify(result=[obj.dump() for obj in pool.current_pool])
 
 if __name__ == '__main__':
 
-    data = Data("BaseInfo2")
+    # data = Data("BaseInfo2")
     wani = WaniKaniData()
     pool = QuestionPool(wani)
     pool.populate_pool(['kanji', 'vocabulary'])

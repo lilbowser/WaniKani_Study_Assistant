@@ -60,7 +60,7 @@ Notes
   for easier iteration over multiple readings and meanings.
 """
 
-from datetime import datetime
+from datetime import datetime, date
 from json import loads
 from copy import deepcopy
 
@@ -137,12 +137,11 @@ class WaniKani(object):
         return self._get_items(levels, 'vocabulary', VOCABULARY)
     vocabulary = property(get_vocabulary)
 
-
     def _get(self, resource, key, fields):
         """Gets an WaniKaniObject representing some object returned by the
         API.
         """
-        return WaniKaniObject(self._raw_request(resource)[key], fields, resource)
+        return WaniKaniObject(self._raw_request(resource)[key], fields, resource, api=resource)
 
     def _get_items(self, levels, resource, fields):
         """Gets an array of WaniKaniObject representing radicals, kanji, or
@@ -155,7 +154,7 @@ class WaniKani(object):
                     else response['requested_information'])
         item_list = []
         for item in response:
-            item_list.append(WaniKaniObject(item, fields, resource))
+            item_list.append(WaniKaniObject(item, fields, resource, api=resource))
         return item_list
 
     def _get_meta_items(self, resource, argument):
@@ -168,7 +167,8 @@ class WaniKani(object):
         for item in response['requested_information']:
             tmap = {'radical': RADICAL, 'kanji': KANJI,
                     'vocabulary': VOCABULARY}
-            item_list.append(WaniKaniObject(item, tmap[item['type']], item['type']))
+            tmp = WaniKaniObject(item, tmap[item['type']], item['type'], api=resource)
+            item_list.append(tmp)
         return item_list
 
     def _raw_request(self, resource, argument='', version=API_VERSION):
@@ -206,25 +206,74 @@ class WaniKaniObject(object):
     function used to retrieve the name from a provided JSON object.
     """
 
-    def __init__(self, info, fields, name=None):
-        for field, fun in fields:
-            if info is not None and field in info and info[field] is not None:
-                setattr(self, field, fun(info[field]))
-            else:
-                setattr(self, field, None)
-        if name is not None:
-            setattr(self, 'type', name)
+    def __init__(self, info=None, fields=None, name=None, api=None, load_from_dict=None):
+        if fields is not None:
+            for field, fun in fields:
+                if info is not None and field in info and info[field] is not None:
+                    setattr(self, field, fun(info[field]))
+                else:
+                    setattr(self, field, None)
+            if name is not None:
+                setattr(self, 'type', name)
+
+            if api is not None:
+                setattr(self, 'api', api)
+            elif name is not None:
+                setattr(self, 'type', name)
+        elif load_from_dict is not None:
+            self.load(load_from_dict)
 
     def __repr__(self):
         return str(self.__dict__)
 
-    def serialize(self):
+    def __eq__(self, other):
+        if hasattr(self, 'type') and hasattr(other, 'type'):
+            if self.type == other.type:
+                if hasattr(self, 'character'):
+                    if self.character == other.character:
+                        return True
+                else:
+                    raise NotImplementedError
+        return False
+
+    def dump(self):
+        """
+        Converts its self and any WaniKaniObjects contained into a Dict matching the original object. This allows for
+        the WaniKaniObject to be converted to JSON.
+
+        :return:  A dictionary representation of the WaniKaniObject
+        :rtype: dict[str, str | int | dict[str, str | int]]
+        """
         tmp = deepcopy(self.__dict__)
         for key, item in self.__dict__.items():
             if type(item) == WaniKaniObject:
-                tmp[key] = item.serialize()
+                tmp[key] = item.dump()
+            if isinstance(item, (date, datetime)):
+                tmp[key] = int(item.strftime("%s"))
         return tmp
 
+    def load(self, data):
+        """
+        Populates itself with the data extracted from a dict representing a WaniKaniObject
+
+        :param data: WaniKaniObject Dict
+        :type data: dict[str, str | int | dict[str, str | int]]
+        """
+        if type(data) == str:
+            obj = loads(data)['results']
+        else:
+            obj = data
+
+        for key, item in obj.items():
+            if type(item) == dict:
+                wani_obj = WaniKaniObject().load(item)
+                setattr(self, key, wani_obj)
+            else:
+                if key.find('date') > -1:
+                    setattr(self, key, datetime.fromtimestamp(item))
+                else:
+                    setattr(self, key, item)
+        return self
 
 USER_INFO = [('username', lambda x: x),
              ('gravatar', lambda x: x),
@@ -289,3 +338,4 @@ VOCABULARY = [('character', lambda x: x),
               ('meaning', lambda x: x.split(', ')),
               ('level', lambda x: x),
               ('user_specific', lambda x: WaniKaniObject(x, USER_SPEC))]
+
