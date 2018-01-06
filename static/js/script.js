@@ -145,7 +145,7 @@ function show_answer() {
     var correct_answer = get_answer();
 
     var messageText = "The correct answer is " + correct_answer[0] + "";
-    var alertBox = '<div class="alert ' + 'text-center alert-info alert-dismissable"><button id="answer-dismiss" type="button" data-dismiss="alert" class="close" aria-hidden="true">&times</button>' + messageText + '</div>';
+    var alertBox = '<div class="alert ' + 'text-center alert-info alert-dismissable"><button id="answer-dismiss" type="button" data-dismiss="alert" class="close" aria-hidden="true">&times</button><h4>' + messageText + '</h4></div>';
     $('#message-display').html(alertBox);
     $('#answer-dismiss').focus();
 }

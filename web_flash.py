@@ -302,7 +302,7 @@ def get_item():
     if request.method == 'POST':
         if 'index' in request.form:
             current_index = request.form['index']
-            item = pool.current_pool[int(current_index)].serialize()
+            item = pool.current_pool[int(current_index)].dump()
             print("Index: {}, Item: {}".format(current_index, item))
             return jsonify(results=item)
 
