@@ -11,7 +11,6 @@ from random import SystemRandom as random
 # from crabigator.wanikani import WaniKani
 from wanikani_lib import WaniKani, WaniKaniObject
 import utils
-import pickle
 
 from json import load, dump
 
@@ -92,7 +91,9 @@ class WaniKaniData:
             api_name = data_id['name']
         setattr(self, data_id['name'], getattr(self.wk, api_name))
         self.label_items(data_id['name'])
+        self.add_url(data_id)
         self.assign_scores(data_id)
+
 
     def load_data_set(self):
         for data_id in self.data_set_ids:
@@ -122,6 +123,11 @@ class WaniKaniData:
             self.save_data_set_to_disk(data_id['name'])
 
 
+
+    def add_url(self, data_id):
+        for item in getattr(self, data_id['name']):
+            url = "https://www.wanikani.com/{type}/{slug_name}".format(type=item.type, slug_name=item.character)
+            item.url = url
 
 
 class WaniKaniDataError(Exception):
@@ -165,7 +171,6 @@ class QuestionPool:
             return self.current_pool[self.index]
 
     def previous(self):
-
         if self.index == 0:
             # At start of data
             return "start"
@@ -209,28 +214,10 @@ if __name__ == '__main__':
     tmp = []
 
     a = pool.current_pool[0]
-    a.testing = "Wppp"
 
     # b = [obj.dump() for obj in pool.current_pool]
 
-    # data = wani.vocabulary
-    # pickeled_data = pickle.dumps(data)
-    # unpickled_data = pickle.loads(pickeled_data)
-
-
     wani.save_to_disk()
-    # wani.save_data_set_to_disk('vocabulary')
-    # data = wani.load_data_set_from_disk('vocabulary')
-    # serialized = []
-    #
-    # for item in pool.current_pool:
-    #     serialized.append(item.dump())
-    #
-    #
-    # deserialized = []
-    #
-    # for item in serialized:
-    #     deserialized.append(WaniKaniObject().load(item))
 
     # a = []
     #

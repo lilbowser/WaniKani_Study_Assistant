@@ -81,6 +81,19 @@ class Data:
         return self.data[self.index]
 
 
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
+
+
 @app.route('/hello')
 def hello_world():
     #  こんにちわ
@@ -112,7 +125,37 @@ def hello_world():
 
 @app.route('/')
 def main_route():
-    return hello_world()
+    return render_template('index.html')
+
+
+@app.route('/demo')
+def demo_route():
+    return render_template('basic/index.html')
+
+
+@app.route('/boot')
+def boot():
+    return render_template('indexboot.html')
+
+
+@app.route('/form')
+def form():
+    return render_template('form.html')
+
+
+@app.route('/submit',  methods=['GET', 'POST'])
+def submit():
+
+    if request.method == 'POST':
+
+        if 'message' in request.form:
+            message = request.form['message']
+            return jsonify(type="Success", message="Data Received: " + message)  #
+        elif 'answer' in request.form:
+            message = request.form['answer']
+            return jsonify(type="Success", message=message)
+
+    return jsonify(type="Failure")
 
 
 @app.route('/test')
@@ -254,6 +297,24 @@ def cur():
     return jsonify(results=pool.current().dump())
 
 
+@app.route("/get_item", methods=['GET', 'POST'])
+def get_item():
+    if request.method == 'POST':
+        if 'index' in request.form:
+            current_index = request.form['index']
+            item = pool.current_pool[int(current_index)].serialize()
+            print("Index: {}, Item: {}".format(current_index, item))
+            return jsonify(results=item)
+
+    else:
+        return jsonify(error=True)
+
+
+@app.route("/get_pool_details", methods=['GET', 'POST'])
+def get_pool_details():
+    return jsonify(pool_length=len(pool.current_pool))
+
+
 @app.route("/prev")
 def prev():
     index = pool.previous()
@@ -275,5 +336,5 @@ if __name__ == '__main__':
     pool = QuestionPool(wani)
     pool.populate_pool(['kanji', 'vocabulary'])
     pool.randomize_pool()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
 
