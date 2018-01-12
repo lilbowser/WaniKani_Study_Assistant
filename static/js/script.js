@@ -151,7 +151,9 @@ function show_answer() {
 }
 
 function show_info() {
-    window.open(current_data_item.url)
+
+    var url = "/get_item_details?index=" + current_index;
+    window.open(url, 'wani-info')
 }
 
 function get_pool_size() {

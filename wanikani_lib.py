@@ -227,16 +227,38 @@ class WaniKaniObject(object):
         return str(self.__dict__)
 
     def __eq__(self, other):
-        if hasattr(self, 'type') and hasattr(other, 'type'):
-            if self.type == other.type:
-                if hasattr(self, 'character'):
-                    if self.character == other.character:
-                        return True
-                else:
-                    raise NotImplementedError
-        return False
+        return self.equal(other, strength='weak')
 
-    def dump(self):
+    def equal(self, other, strength='weak'):
+        """
+        Determine if an object is equal to this object
+
+        :param other: The other object
+        :type other:
+        :param strength: Determines if looking for a 'strong' equivalence or a 'weak' equivalence. Options: 'strong', 'weak'.
+        :type strength: str
+        :return: True or False Equivalence
+        :rtype: bool
+        """
+
+        if strength == 'weak':
+            if hasattr(self, 'type') and hasattr(other, 'type'):
+                if self.type == other.type:
+                    if hasattr(self, 'character'):
+                        if self.character == other.character:
+                            return True
+                    else:
+                        return False
+            return False
+
+        elif strength == 'strong':
+            raise NotImplementedError
+
+        else:
+            raise NotImplementedError
+
+
+    def dump(self, html=False):
         """
         Converts its self and any WaniKaniObjects contained into a Dict matching the original object. This allows for
         the WaniKaniObject to be converted to JSON.
@@ -248,8 +270,10 @@ class WaniKaniObject(object):
         for key, item in self.__dict__.items():
             if type(item) == WaniKaniObject:
                 tmp[key] = item.dump()
-            if isinstance(item, (date, datetime)):
-                tmp[key] = int(item.strftime("%s"))
+            if isinstance(item, (date, datetime)):  # TODO: date should not be here
+                tmp[key] = item.timestamp()
+            if key == 'html' and html == False:
+                tmp[key] = None
         return tmp
 
     def load(self, data):
@@ -271,6 +295,8 @@ class WaniKaniObject(object):
             else:
                 if key.find('date') > -1:
                     setattr(self, key, datetime.fromtimestamp(item))
+                elif key == 'html':
+                    setattr(self, key, item)
                 else:
                     setattr(self, key, item)
         return self

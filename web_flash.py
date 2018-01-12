@@ -7,6 +7,7 @@ import logging
 import re
 from flask import Flask, render_template, jsonify, json, request, redirect, url_for
 from WaniKani_quiz import QuestionPool, WaniKaniData
+from WaniKaniAuthenticatedScraper import AuthedWaniScraper
 
 
 app = Flask(__name__)
@@ -281,7 +282,6 @@ def post():
                        """.format(status)
     return html
 
-
 @app.route("/next")
 def next():
     item = pool.next()
@@ -315,6 +315,25 @@ def get_pool_details():
     return jsonify(pool_length=len(pool.current_pool))
 
 
+@app.route("/get_item_details", methods=['GET', 'POST'])
+def get_item_details():
+    if request.method == 'POST':
+        if 'index' in request.form:
+            current_index = request.form['index']
+            item = pool.current_pool[int(current_index)]  #.dump()
+            print("Index: {}, Item: {}".format(current_index, item))
+            return item.wani_assist_details.html #jsonify(results=item)
+
+    if request.method == 'GET':
+        if 'index' in request.args:
+            current_index = request.args['index']
+            item = pool.current_pool[int(current_index)]  #.dump()
+            pool.wani.update_website(item)
+            print("Index: {}, Item: {}".format(current_index, item))
+            return item.wani_assist_details.html #jsonify(results=item)
+
+
+
 @app.route("/prev")
 def prev():
     index = pool.previous()
@@ -332,9 +351,10 @@ def json():
 if __name__ == '__main__':
 
     # data = Data("BaseInfo2")
-    wani = WaniKaniData()
-    pool = QuestionPool(wani)
-    pool.populate_pool(['kanji', 'vocabulary'])
-    pool.randomize_pool()
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    # wani = WaniKaniData()
+    with AuthedWaniScraper() as wani_scraper:
+        pool = QuestionPool(wani_scraper)
+        pool.populate_pool(['kanji', 'vocabulary'])
+        pool.randomize_pool()
+        app.run(host="0.0.0.0", port=5001, debug=True)
 
